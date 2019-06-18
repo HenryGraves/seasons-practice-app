@@ -1,12 +1,67 @@
-import React from 'react';
+import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
-import * as serviceWorker from './serviceWorker';
+import SeasonDisplay from './SeasonDisplay';
+import LoadingSpinner from './LoadingSpinner';
+class App extends Component {
+  constructor(props) {
+    // init the parent
+    super(props); 
+    // set state
+    // ONLY TIME WE USE DIRECT ASSIGNMENT
+    // must be literally named state 
+    this.state = {
+      lat: null,
+      long: null,
+      errorMessage: ''
+    };
+  }
 
-ReactDOM.render(<App />, document.getElementById('root'));
+  componentDidMount() {
+    // get location
+    window.navigator.geolocation.getCurrentPosition(
+      // CB 1 man callbacks suck
+      (position) => {
+        // use setState to update any state
+        // ONLY
+        this.setState({
+          lat: position.coords.latitude
+        });
+      },
+      // cb 2
+      (error) => {
+        // set state if error
+        this.setState({
+          errorMessage: error.message
+        });
+      }
+    );
+  }
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister();
+  renderContent() {
+    const { lat, errorMessage } = this.state;
+    if (errorMessage && !lat) {
+      return (<div>Error: {errorMessage}</div>);
+    } else if (!errorMessage && lat) {
+      return (<SeasonDisplay lat={lat} />);
+    } else {
+      return ( 
+        <LoadingSpinner 
+          message="Can we know where you're at?
+          Waiting for location request ..."
+        /> 
+      );
+    }
+  }
+
+  render() {
+    return (
+      <div className="no conditionals in render11">
+        {this.renderContent()}
+      </div>
+    );
+  }
+}
+ReactDOM.render(
+  <App />,
+  document.querySelector('#root')
+)
